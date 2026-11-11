@@ -8404,7 +8404,7 @@
           "activation": [
             "Glute bridge",
             "Dead bug",
-            "Bird dog amb pausa"
+            "Clamshell amb miniband"
           ],
           "strength": [
             "Rem assegut a politja",
@@ -8453,8 +8453,8 @@
             },
             {
               "kind": "activation",
-              "value": "Bird dog amb pausa",
-              "id": "EX-RIU-1013"
+              "value": "Clamshell amb miniband",
+              "id": "EX-RIU-1001"
             }
           ],
           "mobilityDose": "8 repeticions · 1 volta",
@@ -8462,7 +8462,7 @@
           "motorNote": "",
           "itemIds": {
             "main": "EX-275",
-            "activationItems:3": "EX-RIU-1013"
+            "activationItems:3": "EX-RIU-1001"
           },
           "tvDoses": {
             "strength:0": "10 rep",
