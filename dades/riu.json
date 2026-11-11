@@ -8399,8 +8399,7 @@
           "mobility": [
             "90/90 – Mobilitat de maluc",
             "Adductor rock-back",
-            "90/90 – Mobilitat de maluc",
-            "Active Spiderman"
+            "90/90 – Mobilitat de maluc"
           ],
           "activation": [
             "Glute bridge",
@@ -8456,8 +8455,7 @@
           "activationDose": "10 repeticions · 2 voltes",
           "motorNote": "",
           "itemIds": {
-            "main": "EX-275",
-            "mobility:3": "EX-019"
+            "main": "EX-275"
           },
           "tvDoses": {
             "strength:0": "10 rep",
