@@ -8403,7 +8403,8 @@
           ],
           "activation": [
             "Glute bridge",
-            "Dead bug"
+            "Dead bug",
+            "Bird dog amb pausa"
           ],
           "strength": [
             "Rem assegut a politja",
@@ -8449,13 +8450,19 @@
               "kind": "hmb",
               "value": "Transferències de pes en bipedestació",
               "id": ""
+            },
+            {
+              "kind": "activation",
+              "value": "Bird dog amb pausa",
+              "id": "EX-RIU-1013"
             }
           ],
           "mobilityDose": "8 repeticions · 1 volta",
           "activationDose": "10 repeticions · 2 voltes",
           "motorNote": "",
           "itemIds": {
-            "main": "EX-275"
+            "main": "EX-275",
+            "activationItems:3": "EX-RIU-1013"
           },
           "tvDoses": {
             "strength:0": "10 rep",
