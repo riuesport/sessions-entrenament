@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "exercises": [
     {
       "name": "Samson Stretch",
@@ -8399,7 +8399,8 @@
           "mobility": [
             "90/90 – Mobilitat de maluc",
             "Adductor rock-back",
-            "90/90 – Mobilitat de maluc"
+            "90/90 – Mobilitat de maluc",
+            "Active Spiderman"
           ],
           "activation": [
             "Glute bridge",
@@ -8455,7 +8456,8 @@
           "activationDose": "10 repeticions · 2 voltes",
           "motorNote": "",
           "itemIds": {
-            "main": "EX-275"
+            "main": "EX-275",
+            "mobility:3": "EX-019"
           },
           "tvDoses": {
             "strength:0": "10 rep",
@@ -12084,5 +12086,7 @@
         }
       ]
     }
-  ]
+  ],
+  "deletedExerciseIds": [],
+  "deletedMotorIds": []
 }
