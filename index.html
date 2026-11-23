@@ -1,6 +1,27 @@
 <!DOCTYPE html>
 <html lang="ca"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>RIU · Programa de sessions amb exportació TV · Desembre–Maig</title>
+<script src="./riu-cloud-config.js"></script>
+<script>
+if(window.RIU_CLOUD_CONFIG?.url && window.RIU_CLOUD_CONFIG?.publishableKey){document.documentElement.classList.add('riu-cloud-locked')}
+</script>
+<style>
+html.riu-cloud-locked #app,html.riu-cloud-locked #nav,html.riu-cloud-locked .top-actions,html.riu-cloud-locked #modal {visibility:hidden!important;pointer-events:none!important}
+#riu-cloud-bar {display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:10px 25px;background:#e8f4fa;color:#073553;border-bottom:1px solid #c5dde9;font:13px/1.45 Inter,Arial,sans-serif}
+#riu-cloud-bar button{background:white;border:1px solid #97bdd0;border-radius:7px;padding:6px 10px;color:#073553;font-weight:650;cursor:pointer}
+#riu-cloud-bar button:disabled{opacity:.5;cursor:default}
+#riu-cloud-gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(5,33,57,.91);z-index:9999;padding:22px;font:14px/1.5 Inter,Arial,sans-serif;color:#1d3549}
+#riu-cloud-gate .riu-gate-card{width:min(440px,100%);background:white;padding:28px;border-radius:16px;box-shadow:0 24px 80px #0005}
+#riu-cloud-gate h2{margin:0 0 6px;color:#073553;font-size:27px}
+#riu-cloud-gate .intro{color:#536b7b;margin-bottom:18px}
+#riu-cloud-gate label{display:block;font-weight:700;color:#073553;margin:13px 0 5px}
+#riu-cloud-gate input{width:100%;padding:12px;border:1px solid #b7cbd7;border-radius:8px}
+#riu-cloud-gate button{padding:11px 14px;background:#073553;color:white;border:0;border-radius:8px;font-weight:750;cursor:pointer;margin-top:15px}
+#riu-cloud-gate button:disabled{opacity:.55}
+#riu-cloud-gate .error{color:#ad3030;font-size:13px;margin-top:12px;white-space:pre-wrap}
+#riu-cloud-gate small{color:#657b88}
+@media(max-width:600px){#riu-cloud-bar{padding:10px}}
+</style>
 <style>
 :root{--navy:#072D53;--blue:#048fc1;--bright:#08a6d3;--ink:#1e2b39;--muted:#6c7988;--light:#f4f7f9;--stroke:#e3eaf0;--pale:#e9f6fa;--green:#138864;--mint:#e7f5ee;--shadow:0 8px 30px rgba(7,45,83,.06)}
 *{box-sizing:border-box}body{margin:0;background:#f5f7f9;color:var(--ink);font:14px/1.5 'Segoe UI',Inter,Arial,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #7cd2ee;outline-offset:2px}
@@ -436,7 +457,7 @@ const e=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&g
 const norm=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 const clone=x=>JSON.parse(JSON.stringify(x));
 let data=clone(DEFAULT_DATA), view='inici',monthIx=0,dayIx=0, picker=null,detail=null,catalogSearch='',catalogBlock='',catalogPattern='',catalogMaterial='',catalogAvailability='',catalogShown=200,motorSearch='',motorFamily='';
-try{const loaded=JSON.parse(localStorage.getItem(STORE)||'null');if(loaded&&Array.isArray(loaded.months)&&Array.isArray(loaded.exercises)&&Array.isArray(loaded.motor))data=loaded;}catch(ex){/* storage unavailable */}
+try{const loaded=(window.RIU_CLOUD_CONFIG?.url&&window.RIU_CLOUD_CONFIG?.publishableKey)?null:JSON.parse(localStorage.getItem(STORE)||'null');if(loaded&&Array.isArray(loaded.months)&&Array.isArray(loaded.exercises)&&Array.isArray(loaded.motor))data=loaded;}catch(ex){/* storage unavailable */}
 
 // V2. La classificació principal de la biblioteca NO és igual als blocs on es pot utilitzar.
 // Els camps uses i relatedPatterns es poden modificar individualment a cada fitxa.
@@ -553,7 +574,7 @@ async function migrateOldPhotos(){
  }
  if(changed)save();
 }
-function save(){try{localStorage.setItem(STORE,JSON.stringify(data));return true}catch(ex){toast('Sense espai per desar dades al navegador. Exporta una còpia JSON.');return false}}
+function save(){if(window.RIU_CLOUD_CONFIG?.url&&window.RIU_CLOUD_CONFIG?.publishableKey){window.RIUCloudBridge?.markDirty?.();return true;}try{localStorage.setItem(STORE,JSON.stringify(data));return true}catch(ex){toast('Sense espai per desar dades al navegador. Exporta una còpia JSON.');return false}}
 function selectedKey(field,idx){return field+(idx===null||idx===undefined?'':':'+idx)}
 function resolveSelection(kind,field,idx,value,day=getDay()){
  const key=selectedKey(field,idx),id=day?.itemIds?.[key];
@@ -4586,4 +4607,5 @@ if(view==='macro'||view==='meso'||view==='session')render();
 })();
 
 </script>
+<script src="./riu-cloud-sync.js"></script>
 </body></html>
