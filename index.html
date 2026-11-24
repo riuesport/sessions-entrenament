@@ -449,7 +449,7 @@ const DEFAULT_DATA = {"version":5,"exercises":[{"name":"Samson Stretch","raw":"S
 const STORE='RIU_ENTRENAMENT_WEB_NOV2026_V1';
 const DAYS=['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'];
 const FAMILIES=['Locomoció','Estabilitat i control corporal','Manipulació d’objectes'];
-const PATTERNS=['Dominant de maluc','Dominant de genoll','Empenta horitzontal','Empenta vertical','Tracció horitzontal','Tracció vertical','Integració','Control del tronc / planxes'];
+const PATTERNS=['Dominant de maluc','Dominant de genoll','Empenta horitzontal','Empenta vertical','Tracció horitzontal','Tracció vertical','Integració','Control del tronc / planxes','Potència'];
 const BLOCKS=['Mobilitat','Activació','Força','Accessoris','Potència / integració','Condicionament','HMB'];
 const SESSION_BLOCKS=['Mobilitat','Activació','Força','Cardio'];
 const $=q=>document.querySelector(q);
@@ -474,6 +474,7 @@ function inferredUses(x){
  }
  if(b==='Potència / integració'){
   const out=['Força'];
+  if(/jump|pogo|bound|snap.?down|slam|throw|toss|push press|swing|clean|snatch|jerk|plyometric|explosive/.test(n))out.unshift('Activació');
   if(/thruster|swing|slam ball|wall ball|push press/.test(n))out.push('Cardio');
   return out;
  }
@@ -513,13 +514,121 @@ function inferredRelatedPatterns(x){
  if(/\bpush press\b/.test(n))found.add('Empenta vertical');
  return [...found].filter(z=>PATTERNS.includes(z));
 }
+/* RIU · Ampliació de patrons i biblioteca (sense modificar sessions).
+ * Integració / Control del tronc ja existien a parts del catàleg; aquesta funció
+ * afegeix les etiquetes de cerca i un repertori de potència per a Activació.
+ * Opera només sobre data.exercises; no escriu mai a data.months. */
+function riuPatternEnsureCatalog(){
+ const CORE='Control del tronc / planxes', INTEG='Integració', POWER='Potència';
+ const CATALOG=[
+  // Nom anglès | patró | blocs recomanats | material RIU | nota tècnica.
+  ['Front Plank',CORE,'Activació,Força','Terra / sense material','Exercici anti-extensió: respiració i alineació.'],
+  ['Plank Shoulder Taps',CORE,'Activació,Força','Terra / sense material','Evitar la rotació de la pelvis; adaptar amb mans elevades.'],
+  ['Side Plank',CORE,'Activació,Força','Terra / sense material','Anti-flexió lateral; regressió amb genolls flexionats.'],
+  ['Side Plank Hip Lifts',CORE,'Activació,Força','Terra / sense material','Elevar maluc sense compensacions.'],
+  ['Dead Bug',CORE,'Activació,Força','Terra / sense material','Mantenir columna neutra durant l’extensió alterna.'],
+  ['Bird Dog',CORE,'Activació,Força','Terra / sense material','Control lumbopèlvic sense rotació.'],
+  ['Bear Plank Hold',CORE,'Activació,Força','Terra / sense material','Suport quadrupèdia amb genolls suspesos.'],
+  ['Bear Plank Shoulder Taps',CORE,'Activació,Força','Terra / sense material','Anti-rotació en suport de quatre punts.'],
+  ['Hollow Body Hold',CORE,'Activació,Força','Terra / sense material','Regressió amb genolls flexionats.'],
+  ['Reverse Plank',CORE,'Activació,Força','Terra / sense material','Control de línia corporal i extensió de maluc.'],
+  ['Half-Kneeling Banded Pallof Press',CORE,'Activació,Força','Gomes elàstiques','Anti-rotació, costelles sobre pelvis.'],
+  ['Standing Banded Pallof Press',CORE,'Activació,Força','Gomes elàstiques','Mantenir l’alineació i resistir la rotació.'],
+  ['Pallof Press Walkout',CORE,'Activació,Força','Gomes elàstiques','Passes curtes, tronc estable.'],
+  ['Suitcase Carry',CORE,'Activació,Força','Kettlebells','Anti-flexió lateral; càrrega segons control.'],
+  ['Hanging Knee Raise',CORE,'Força','Rack / barra fixa','Sense balanceig; evitar traccions brusques.'],
+  ['RKC Plank',CORE,'Força','Terra / sense material','Contracció breu de qualitat, no buscar màxima durada.'],
+  ['Copenhagen Side Plank (Short Lever)',CORE,'Força','Bancs / suport','Progressió gradual de la palanca.'],
+  ['Bear Crawl',INTEG,'Activació,Força','Terra / sense material','Coordinació contralateral de mans i peus.'],
+  ['Farmer Carry',INTEG,'Força,Cardio','Kettlebells','Càrrega bilateral i marxa controlada.'],
+  ['Single-Arm Kettlebell Farmer Carry',INTEG,'Força','Kettlebells','Control antirrotació i marxa amb càrrega unilateral.'],
+  ['Turkish Get-Up',INTEG,'Força','Kettlebells','Progressió per fases abans d’afegir càrrega.'],
+  ['Kettlebell Windmill',INTEG,'Força','Kettlebells','Mobilitat + control del tronc, no forçar rang.'],
+  ['Kettlebell Clean and Press',INTEG,'Força','Kettlebells','Tècnica prèvia; adaptar al nivell.'],
+  ['Dumbbell Reverse Lunge to Press',INTEG,'Força','Manuelles','Combinació de unilateral de genoll + empenta vertical.'],
+  ['Dumbbell Step-Up to Press',INTEG,'Força','Manuelles','Treball unilateral integrat; escollir step baix.'],
+  ['Landmine Squat to Press',INTEG,'Força','Barra i discos','Patrons de sentadilla i press coordinats.'],
+  ['Renegade Row',INTEG,'Força','Manuelles','Antirrotació + tracció horitzontal, regressió amb suport ample.'],
+  ['Kettlebell Figure Eight',INTEG,'Activació,Força','Kettlebells','Coordinació al voltant de les cames, càrrega lleugera.'],
+  ['Dumbbell Thruster',INTEG,'Força,Cardio','Manuelles','Sentadilla + empenta vertical, tècnica abans de velocitat.'],
+  ['Snap Down to Stick',POWER,'Activació','Terra / sense material','Preparar aterratge: absorció i estabilitat.'],
+  ['Countermovement Jump',POWER,'Activació','Terra / sense material','Poques repeticions ràpides, descans complet, qualitat.'],
+  ['Low Pogo Jumps',POWER,'Activació','Terra / sense material','Contactes baixos i elàstics; variant sense salt si cal.'],
+  ['Vertical Jump and Stick Landing',POWER,'Activació','Terra / sense material','Salt vertical baix, fixar aterratge 2 s.'],
+  ['Lateral Bound and Stick',POWER,'Activació','Terra / sense material','Salt lateral controlat; adaptar a pas lateral si cal.'],
+  ['Explosive Low Step-Up',POWER,'Activació','Caixons / step','Step baix i pujada ràpida; descens controlat.'],
+  ['Slam Ball Overhead Slam',POWER,'Activació','Pilotes medicinals','Pilota slam disponible, evitar rebot.'],
+  ['Slam Ball Rotational Slam',POWER,'Activació','Pilotes medicinals','Potència rotacional amb espai lliure.'],
+  ['Slam Ball Scoop Toss to Floor',POWER,'Activació','Pilotes medicinals','Llançament baix controlat; no a la paret.'],
+  ['Kettlebell Swing',POWER,'Activació,Força','Kettlebells','Frontissa potent; dominar primer el deadlift.'],
+  ['Dumbbell Push Press',POWER,'Activació,Força','Manuelles','Impuls de cames i empenta vertical, càrrega lleugera.'],
+  ['Barbell Push Press',POWER,'Activació,Força','Barra i discos','Només si dominen el dip-drive i el press.'],
+  ['Explosive Incline Push-Up',POWER,'Activació','Terra / sense material','Superfície estable elevada; no cal separar mans.'],
+  ['Squat Jump',POWER,'Activació','Terra / sense material','Poques repeticions; alternativa squat amb pujada ràpida.']
+ ];
+ const normalizeName=x=>norm(window.RIUEnglishNames?.name?.(x)||x).replace(/[^a-z0-9]+/g,' ').trim();
+ const byName=new Map(data.exercises.map(ex=>[normalizeName(ex.name),ex]));
+ let added=0,tagged=0;
+ const combine=(ex,tag,uses)=>{
+  ex.relatedPatterns=Array.isArray(ex.relatedPatterns)?ex.relatedPatterns:[];
+  if(!ex.relatedPatterns.includes(tag)){ex.relatedPatterns.push(tag);tagged++}
+  ex.uses=Array.isArray(ex.uses)?ex.uses:[];
+  for(const use of uses)if(!ex.uses.includes(use))ex.uses.push(use);
+ };
+ const newId=()=>{let id,n=1;do{id='RIU-PAT-2027-'+String(n++).padStart(3,'0')}while(data.exercises.some(ex=>ex.id===id));return id;};
+ for(const [name,tag,useString,material,note] of CATALOG){
+  const key=normalizeName(name),uses=useString.split(',');
+  let ex=byName.get(key);
+  if(!ex){
+   ex={id:newId(),name,raw:name,origins:['RIU · Patrons complementaris'],block:tag===POWER?'Potència / integració':tag===CORE?'Activació':'Força',pattern:tag,
+    sub:tag,family:'',skill:'',status:'Disponible / adaptable',note,media:'',equipmentTags:[material==='Bancs / suport'?'Altres / revisar':material],uses:[...uses],relatedPatterns:[tag]};
+   data.exercises.push(ex);byName.set(key,ex);added++;
+  }else{combine(ex,tag,uses)}
+ }
+ const core=/(\b(plank|dead bug|bird dog|hollow|pallof|anti.?rotation|body saw|copenhagen|bear plank|abdominal brace|hanging knee raise|toes to bar|suitcase carry|side bridge|trunk stabil)\b)/;
+ const integrate=/(\b(thruster|turkish get.?up|windmill|renegade row|farmer carry|suitcase carry|bear crawl|clean and press|figure eight|squat to press|squat and press|lunge to press|step.?up to press|man.?maker)\b)/;
+ const power=/(\b(pogo|plyometric|power clean|hang clean|snatch|swing|jump|jumps|bound|bounds|snap.?down|slam|throw|toss|push press|push jerk|split jerk|explosive|ballistic)\b)/;
+ for(const ex of data.exercises){
+  const n=norm(ex.name+' '+(ex.sub||''));
+  if(core.test(n)||norm(ex.pattern).includes('control del tronc'))combine(ex,CORE,ex.block==='Condicionament'?['Cardio']:['Activació','Força']);
+  if(integrate.test(n)||ex.pattern===INTEG)combine(ex,INTEG,ex.block==='Condicionament'?['Cardio']:['Força']);
+  if(power.test(n)||ex.pattern===POWER){
+   // Potència com a opció al bloc d'activació; els salts no són cardio de fatiga.
+   combine(ex,POWER,['Activació']);
+  }
+ }
+ // Etiquetes de consulta d'alta precisió: no confondre el patró antic
+ // "Integració" (sovint assignat genèricament a exercicis de readaptació)
+ // amb un exercici que combina realment patrons de moviment.
+ for(const ex of data.exercises){
+  const n=norm(ex.name);
+  const roles=new Set();
+  if(core.test(n)||ex.pattern===CORE)roles.add(CORE);
+  if(integrate.test(n)&&!/(cable biceps curl|cable shoulder external rotation|cable shoulder internal rotation)/.test(n))roles.add(INTEG);
+  if(power.test(n)&&!/(kipping swing|beat swing|no.jump burpee|gentle ball toss|toss and catch|throw simulation)/.test(n))roles.add(POWER);
+  ex.riuAutoPatternRoles=[...roles];
+ }
+ data.riuPatternCatalogVersion=2;
+ return {added,tagged};
+}
+function riuPatternMatches(ex,pattern){
+ if(!pattern)return true;
+ if(!['Integració','Control del tronc / planxes','Potència'].includes(pattern))
+  return ex.pattern===pattern||(ex.relatedPatterns||[]).includes(pattern);
+ const tags=ex.riuManualPatternTagsConfigured?(ex.riuManualPatternTags||[]):(ex.riuAutoPatternRoles||[]);
+ return tags.includes(pattern);
+}
+function riuPatternDisplayTags(ex){
+ const triad=['Integració','Control del tronc / planxes','Potència'];
+ return [...new Set([...(ex.relatedPatterns||[]).filter(p=>!triad.includes(p)),...triad.filter(p=>riuPatternMatches(ex,p))])];
+}
 function enrichExercise(x){
  if(!Array.isArray(x.uses))x.uses=inferredUses(x);
  if(!Array.isArray(x.relatedPatterns))x.relatedPatterns=inferredRelatedPatterns(x);
  return x;
 }
 // Aplica també a còpies JSON antigues i conserva els canvis manuals existents.
-function enrichLibrary(){data.exercises.forEach(enrichExercise);}
+function enrichLibrary(){data.exercises.forEach(enrichExercise);riuPatternEnsureCatalog();}
 enrichLibrary();
 mergeDefaultCatalog();
 seedMissingMesocycles();
@@ -833,7 +942,7 @@ function filteredExerciseList(){
  return data.exercises.filter(x=>
   (!catalogSearch||norm([x.name,x.sub,x.pattern,x.raw,(x.relatedPatterns||[]).join(' '),(window.RIUMaterialEngine?.materialTags(x)||[]).join(' ')].join(' ')).includes(norm(catalogSearch)))&&
   (!catalogBlock||(x.uses||[]).includes(catalogBlock))&&
-  (!catalogPattern||(x.relatedPatterns||[]).includes(catalogPattern))&&
+  (!catalogPattern||riuPatternMatches(x,catalogPattern))&&
   (!catalogMaterial||(window.RIUMaterialEngine?.materialTags(x)||[]).includes(catalogMaterial))&&
   (!catalogAvailability||x.status===catalogAvailability)
  );
@@ -867,19 +976,19 @@ function pickerList(){
    const uses=x.uses||[];
    if(k==='mobility')return uses.includes('Mobilitat');
    if(k==='activation')return uses.includes('Activació');
-   if(k==='main')return (x.block==='Força'||x.block==='Potència / integració'||(d.pattern==='Control del tronc / planxes'&&x.pattern===d.pattern))&&(!d.pattern||x.pattern===d.pattern);
+   if(k==='main')return (x.uses||[]).includes('Força')&&(!d.pattern||riuPatternMatches(x,d.pattern));
    if(k==='strength')return uses.includes('Força');
    if(k==='cardio')return uses.includes('Cardio')||x.block==='Condicionament';
    return true;
   }).map(x=>({...x,_type:'ex'}));
  }
  if(picker.onlyRelated&&k!=='main'&&k!=='hmb'&&PATTERNS.includes(d.pattern))
-  xs=xs.filter(x=>(x.relatedPatterns||[]).includes(d.pattern));
+  xs=xs.filter(x=>riuPatternMatches(x,d.pattern));
  const q=norm($('#pickerQuery')?.value||'');
  xs=xs.filter(x=>!q||norm([x.name,x.sub,x.skill,x.pattern].join(' ')).includes(q));
  if(picker.material)xs=xs.filter(x=>x._type==='ex'&&(window.RIUMaterialEngine?.materialTags(x)||[]).includes(picker.material));
  if(k!=='main'&&k!=='hmb'&&PATTERNS.includes(d.pattern))
-  xs.sort((a,b)=>Number((b.relatedPatterns||[]).includes(d.pattern))-Number((a.relatedPatterns||[]).includes(d.pattern))||a.name.localeCompare(b.name,'ca'));
+  xs.sort((a,b)=>Number(riuPatternMatches(b,d.pattern))-Number(riuPatternMatches(a,d.pattern))||a.name.localeCompare(b.name,'ca'));
  else xs.sort((a,b)=>a.name.localeCompare(b.name,'ca'));
  return xs;
 }
@@ -909,7 +1018,7 @@ function openDetail(kind,id){
  $('#modal').innerHTML=`<div class="overlay" data-action="outside"><div class="modal"><div class="modalhead"><h3>${e(item.name)}</h3><button class="close" data-action="close">×</button></div><div class="modalbody">
  <div class="media-preview" id="photoPreview">${media(item)?`<img src="${e(media(item))}" alt="Foto de l'exercici">`:'Afegeix una fotografia o un enllaç de demostració'}</div>
  <div class="notice">${e(ex?item.block+' · '+item.pattern+' · '+item.sub:item.family+' · '+item.skill)}</div>
- ${ex?`<div class="input-row"><label for="statusDetail">Disponibilitat del material a RIU</label><select id="statusDetail">${[...new Set(['Disponible','Disponible / adaptable','No confirmat','No disponible','Revisar','Pendent de revisar',item.status].filter(Boolean))].map(v=>`<option value="${e(v)}" ${v===item.status?'selected':''}>${e(v)}</option>`).join('')}</select><p class="mini">Canvia l'estat després de revisar el material; no cal tornar a crear l'exercici.</p></div><div class="tag-label">En quins blocs de la sessió el podem utilitzar?</div>${cb('uses',SESSION_BLOCKS,item.uses)}<div class="tag-label">Amb quins patrons de força està relacionat?</div><p class="mini">És una relació de suport o preparació. No canvia la classificació principal de l'exercici.</p>${cb('relatedPatterns',PATTERNS,item.relatedPatterns)}<div class="tag-label">Material necessari (pots seleccionar-ne més d'un)</div>${cb('equipment',window.RIUMaterialEngine?.CATEGORIES||[],window.RIUMaterialEngine?.materialTags(item)||[])}`:''}
+ ${ex?`<div class="input-row"><label for="statusDetail">Disponibilitat del material a RIU</label><select id="statusDetail">${[...new Set(['Disponible','Disponible / adaptable','No confirmat','No disponible','Revisar','Pendent de revisar',item.status].filter(Boolean))].map(v=>`<option value="${e(v)}" ${v===item.status?'selected':''}>${e(v)}</option>`).join('')}</select><p class="mini">Canvia l'estat després de revisar el material; no cal tornar a crear l'exercici.</p></div><div class="tag-label">En quins blocs de la sessió el podem utilitzar?</div>${cb('uses',SESSION_BLOCKS,item.uses)}<div class="tag-label">Amb quins patrons de força està relacionat?</div><p class="mini">És una relació de suport o preparació. No canvia la classificació principal de l'exercici.</p>${cb('relatedPatterns',PATTERNS,riuPatternDisplayTags(item))}<div class="tag-label">Material necessari (pots seleccionar-ne més d'un)</div>${cb('equipment',window.RIUMaterialEngine?.CATEGORIES||[],window.RIUMaterialEngine?.materialTags(item)||[])}`:''}
  <div class="input-row"><label>URL de fotografia</label><input id="photoURL" value="${e((item.media||'').startsWith('data:')||(item.media||'').startsWith(PHOTO_PREFIX)?'':item.media||'')}" placeholder="https://.../imatge.jpg"></div>
  <div class="notice">Aquesta fotografia es mostrarà automàticament a la biblioteca, al mesocicle i a la vista de sessió. Pots ampliar-la fent clic a la miniatura.</div><div class="input-row"><label>O puja una fotografia (es comprimirà automàticament)</label><input id="photoFile" type="file" accept="image/*"></div>
  <div class="input-row"><label>Observacions</label><textarea id="notesDetail" rows="3">${e(item.note||item.notes||'')}</textarea></div>
@@ -1242,7 +1351,7 @@ window.addEventListener('click',async ev=>{const target=ev.target.closest('[data
  if(action==='close')return closeModal();if(action==='outside'&&ev.target===target)return closeModal();
  if(action==='add-ex')return openAdd('ex');if(action==='add-hmb')return openAdd('motor');
  if(action==='create-item'){const name=$('#newName')?.value.trim();if(!name)return toast('Escriu un nom.');if(detail.kind==='motor'){data.motor.push({id:'HM-USER-'+Date.now(),name,family:$('#newFamily').value,skill:$('#newSkill').value,level:1,origin:'Afegit RIU',notes:$('#newNotes').value,media:''});}else{const key=window.RIUMaterialEngine?.canonicalKey(name)||norm(name);if(data.exercises.some(x=>(window.RIUMaterialEngine?.canonicalKey(x.name)||norm(x.name))===key))return toast('Aquest exercici ja existeix (potser amb un nom equivalent). Cerca’l i edita la seva fitxa.');const selectedBlock=$('#newBlock').value,selectedPattern=$('#newPattern').value;const obj={id:'EX-USER-'+Date.now(),name,block:selectedBlock==='Cardio'?'Condicionament':selectedBlock,pattern:selectedPattern||'Control i activació',sub:'Nou exercici RIU',status:'Pendent de revisar',family:'',skill:'',raw:'',origins:['Afegit RIU'],note:$('#newNotes').value,media:'',uses:[selectedBlock],relatedPatterns:selectedPattern?[selectedPattern]:[],equipmentTags:[$('#newEquipment')?.value||'Altres / revisar'],materialCustom:true};data.exercises.push(obj)}save();closeModal();render();return toast('Exercici incorporat a la biblioteca.')}
- if(action==='save-detail'){const obj=detail.kind==='motor'?data.motor.find(x=>x.id===detail.id):data.exercises.find(x=>x.id===detail.id);if(!obj)return;const url=$('#photoURL').value.trim();if(url){obj.media=url;photoCache.delete(obj.id);await photoDelete(obj.id)}let note=$('#notesDetail').value;if(detail.kind==='motor')obj.notes=note;else{obj.note=note;obj.status=$('#statusDetail')?.value||obj.status;obj.uses=[...document.querySelectorAll('[data-tag="uses"]:checked')].map(el=>el.value);obj.relatedPatterns=[...document.querySelectorAll('[data-tag="relatedPatterns"]:checked')].map(el=>el.value);obj.equipmentTags=[...document.querySelectorAll('[data-tag="equipment"]:checked')].map(el=>el.value);if(!obj.equipmentTags.length)obj.equipmentTags=['Altres / revisar'];obj.materialCustom=true}save();closeModal();render();return toast('Fitxa, material, disponibilitat i relacions guardades.')}
+ if(action==='save-detail'){const obj=detail.kind==='motor'?data.motor.find(x=>x.id===detail.id):data.exercises.find(x=>x.id===detail.id);if(!obj)return;const url=$('#photoURL').value.trim();if(url){obj.media=url;photoCache.delete(obj.id);await photoDelete(obj.id)}let note=$('#notesDetail').value;if(detail.kind==='motor')obj.notes=note;else{obj.note=note;obj.status=$('#statusDetail')?.value||obj.status;obj.uses=[...document.querySelectorAll('[data-tag="uses"]:checked')].map(el=>el.value);obj.relatedPatterns=[...document.querySelectorAll('[data-tag="relatedPatterns"]:checked')].map(el=>el.value);obj.riuManualPatternTagsConfigured=true;obj.riuManualPatternTags=obj.relatedPatterns.filter(p=>['Integració','Control del tronc / planxes','Potència'].includes(p));obj.equipmentTags=[...document.querySelectorAll('[data-tag="equipment"]:checked')].map(el=>el.value);if(!obj.equipmentTags.length)obj.equipmentTags=['Altres / revisar'];obj.materialCustom=true}save();closeModal();render();return toast('Fitxa, material, disponibilitat i relacions guardades.')}
  if(action==='remove-photo'){const obj=detail.kind==='motor'?data.motor.find(x=>x.id===detail.id):data.exercises.find(x=>x.id===detail.id);if(obj){obj.media='';await photoDelete(obj.id);save();}render();return openDetail(detail.kind,detail.id)}
 });
 window.addEventListener('change',async ev=>{const el=ev.target;if(el.id==='dayMode'){setSessionMode(el.value);return}
@@ -4386,6 +4495,7 @@ function updateProgram(){
 
 updateProgram();
 window.RIUEnglishNames?.translateAll(data);
+riuPatternEnsureCatalog();
 save();
 const _save=save;
 save=function(...args){captureWeek();return _save(...args)};
@@ -4438,7 +4548,7 @@ function weekDayCard(mi,di,wi,w){
  ${editableBlock(mi,di,wi,w,'main','03 · Força principal')}
  ${editableBlock(mi,di,wi,w,'strength','03 · Força complementària')}
  ${editableBlock(mi,di,wi,w,'cardio','04 · Cardio')}
- <div class="riu-month-methods"><label>Patró de moviment principal<select data-riu-month-mi="${mi}" data-riu-month-di="${di}" data-riu-month-wi="${wi}" data-riu-month-kind="pattern">${Object.values(patterns).map(p=>`<option value="${esc(p)}" ${p===w.pattern?'selected':''}>${esc(p)}</option>`).join('')}</select></label><label>Mètode de força<input type="text" data-riu-month-mi="${mi}" data-riu-month-di="${di}" data-riu-month-wi="${wi}" data-riu-month-kind="strengthMethod" value="${inputEscape(w.strengthMethod)}"/></label>
+ <div class="riu-month-methods"><label>Patró de moviment principal<select data-riu-month-mi="${mi}" data-riu-month-di="${di}" data-riu-month-wi="${wi}" data-riu-month-kind="pattern">${PATTERNS.map(p=>`<option value="${esc(p)}" ${p===w.pattern?'selected':''}>${esc(p)}</option>`).join('')}</select></label><label>Mètode de força<input type="text" data-riu-month-mi="${mi}" data-riu-month-di="${di}" data-riu-month-wi="${wi}" data-riu-month-kind="strengthMethod" value="${inputEscape(w.strengthMethod)}"/></label>
  <label>Format de cardio<input type="text" data-riu-month-mi="${mi}" data-riu-month-di="${di}" data-riu-month-wi="${wi}" data-riu-month-kind="cardioFormat" value="${inputEscape(w.cardioFormat)}"/></label>
  <label>Progressió de la setmana<input type="text" data-riu-month-mi="${mi}" data-riu-month-di="${di}" data-riu-month-wi="${wi}" data-riu-month-kind="progression" value="${inputEscape(w.progression)}"/></label></div>
  <div class="riu-copy-actions"><button type="button" class="btn small riu-copy-button" data-riu-copy-weekday="${mi}:${di}:${wi}" title="Copiar mobilitat, activació, força i cardio de la sessió a les altres setmanes del mateix dia">⧉ Copiar aquest ${day} a les altres setmanes</button><small>La còpia només es fa quan premis el botó. Després pots editar cada setmana.</small></div>
@@ -4654,6 +4764,7 @@ function pickerCatalog(block){
 function exerciseMatchesPattern(ex,pattern,block){
  if(!pattern)return true;
  const tags=[ex.pattern,...(ex.relatedPatterns||[])].filter(Boolean);
+ if(['Integració','Control del tronc / planxes','Potència'].includes(pattern))return riuPatternMatches(ex,pattern);
  if(tags.some(x=>norm(x)===norm(pattern)))return true;
  // Alguns exercicis de mobilitat són transversals i no tenen patró etiquetat.
  // Classifiquem les seves articulacions / gestos perquè també siguin cercables.
@@ -4679,7 +4790,7 @@ function openMonthPicker(button){
  const currentPattern=field.dataset.riuMonthKind&&['mobility','activation','main'].includes(block)?data.months[mi]?.days[di]?.riuWeeks?.[wi]?.pattern:'';
  const labels={mobility:'Mobilitat',activation:'Activació',main:'Força principal',strength:'Força complementària',cardio:'Cardio'};
  const panel=document.createElement('div');panel.className='riu-picker-popup';
- panel.innerHTML=`<div class="riu-picker-header"><b>${esc(labels[block]||'Cardio')} · Biblioteca</b><button type="button" data-riu-close-picker aria-label="Tancar">×</button></div><input type="search" placeholder="Cerca pel nom..." aria-label="Cercar exercici"/><label class="riu-picker-filter">Patró de moviment<select data-riu-filter-pattern aria-label="Filtrar per patró de moviment"><option value="">Tots els patrons</option>${Object.values(patterns).map(p=>`<option value="${esc(p)}" ${p===currentPattern?'selected':''}>${esc(p)}</option>`).join('')}</select></label><label class="riu-picker-filter">Material<select data-riu-filter-material aria-label="Filtrar per material"><option value="">Tot el material</option>${allMaterials.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('')}</select></label><small class="riu-picker-count" role="status"></small><div class="riu-picker-results"></div>`;
+ panel.innerHTML=`<div class="riu-picker-header"><b>${esc(labels[block]||'Cardio')} · Biblioteca</b><button type="button" data-riu-close-picker aria-label="Tancar">×</button></div><input type="search" placeholder="Cerca pel nom..." aria-label="Cercar exercici"/><label class="riu-picker-filter">Patró de moviment<select data-riu-filter-pattern aria-label="Filtrar per patró de moviment"><option value="">Tots els patrons</option>${PATTERNS.map(p=>`<option value="${esc(p)}" ${p===currentPattern?'selected':''}>${esc(p)}</option>`).join('')}</select></label><label class="riu-picker-filter">Material<select data-riu-filter-material aria-label="Filtrar per material"><option value="">Tot el material</option>${allMaterials.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('')}</select></label><small class="riu-picker-count" role="status"></small><div class="riu-picker-results"></div>`;
  row.querySelector('.riu-exercise-choice').appendChild(panel);activeMonthPicker=panel;
  const query=panel.querySelector('input[type="search"]'),material=panel.querySelector('[data-riu-filter-material]'),pattern=panel.querySelector('[data-riu-filter-pattern]'),results=panel.querySelector('.riu-picker-results'),count=panel.querySelector('.riu-picker-count');
  const update=()=>{
